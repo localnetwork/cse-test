@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Custom Search Engine using JSON API</title>
+  </head>
+  <body>
+    <div id="search-container">
+      <label>Search:</label>
+      <input type="text" id="search-box" placeholder="Search">
+      <button type="button" id="search-btn">Go</button>
+    </div>
+    <div id="results-container"></div>
+    <div id="pager-container"></div>
+    
+    <script>
+      var currentPage = 1;
+      var resultsPerPage = 10;
+      var totalResults = 0;
+      
+      function search() {
+        var searchQuery = document.getElementById('search-box').value;
+        var cx = 'e846c25c0ac1c5a09'; // CSE ID
+        var apiKey = 'AIzaSyAT75MySLDfaZGHjjFa7_7AEZn6mmRvFAk';
+        var startIndex = (currentPage - 1) * resultsPerPage + 1;
+        var url = 'https://www.googleapis.com/customsearch/v1/siterestrict?key=' + apiKey + '&cx=' + cx + '&q=' + searchQuery + '&start=' + startIndex + '&num=' + resultsPerPage;
+        
+        fetch(url)
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            var results = data.items || [];
+            var output = '<ul>';
+            results.forEach(function(result) {
+              output += '<li><a href="' + result.link + '">' + result.title + '</a></li>';
+            });
+            output += '</ul>';
+            document.getElementById('results-container').innerHTML = output;
+            
+            totalResults = parseInt(data.searchInformation.totalResults) || 0;
+            var totalPages = Math.ceil(totalResults / resultsPerPage);
+            
+            var startPage, endPage;
+            if (totalPages <= 10) {
+              startPage = 1;
+              endPage = totalPages;
+            } else {
+              if (currentPage <= 6) {
+                startPage = 1;
+                endPage = 10;
+              } else if (currentPage + 4 >= totalPages) {
+                startPage = totalPages - 9;
+                endPage = totalPages;
+              } else {
+                startPage = currentPage - 5;
+                endPage = currentPage + 4;
+              }
+            }
+            
+            var pagerOutput = '';
+            if (totalResults > 0) {
+              if (startPage > 1) {
+                pagerOutput += '<a href="#" data-page="1">&laquo;</a>';
+              }
+              for (var i = startPage; i <= endPage; i++) {
+                if (i === currentPage) {
+                  pagerOutput += '<span>' + i + '</span>';
+                } else if (i > 0 && i <= totalPages) {
+                  pagerOutput += '<a href="#" data-page="' + i + '">' + i + '</a>';
+                }
+              }
+              if (endPage < totalPages) {
+                pagerOutput += '<a href="#" data-page="' + totalPages + '">&raquo;</a>';
+              }
+            }
+            
+            document.getElementById('pager-container').innerHTML = pagerOutput;
+          });
+      }
+      
+      document.getElementById('search-btn').addEventListener('click', function() {
+        currentPage = 1;
+        search();
+      });
+      
+      document.getElementById('search-box').addEventListener('keyup', function(event) {
+        if (event.keyCode === 13) {
+          currentPage = 1;
+          search();
+        }
+      });
+      
+       document.getElementById('pager-container').addEventListener('click', function(event) {
+    if (event.target.tagName === 'A') {
+      var page = parseInt(event.target.getAttribute('data-page'));
+      if (page && page !== currentPage && page <= Math.ceil(totalResults / resultsPerPage)) {
+        currentPage = page;
+        search();
+      }
+    }
+  });
+  
+  search(); // perform initial search
+  
+  function showPager() {
+    var pager = document.getElementById('pager-container');
+    if (totalResults > 0) {
+      pager.style.display = 'block';
+    } else {
+      pager.style.display = 'none';
+    }
+  }
+  
+  setInterval(showPager, 100); // check every 100ms if pager should be displayed
+</script>
+ </body>
+</html>

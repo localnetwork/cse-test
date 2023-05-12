@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Custom Search Engine using JSON API</title>
+  </head>
+  <body>
+    <div id="search-container">
+      <label>Search:</label>
+      <input type="text" id="search-box" placeholder="Search">
+      <button type="button" id="search-btn">Go</button>
+    </div>
+    <div id="results-container"></div>
+    
+    <script>
+      function search() {
+        var searchQuery = document.getElementById('search-box').value;
+        var cx = 'e846c25c0ac1c5a09'; // CSE ID
+        var apiKey = 'AIzaSyAT75MySLDfaZGHjjFa7_7AEZn6mmRvFAk';
+        var url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + cx + '&q=' + searchQuery;
+        
+        fetch(url)
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            var results = data.items;
+            var output = '<ul>';
+            results.forEach(function(result) {
+              output += '<li><a href="' + result.link + '">' + result.title + '</a></li>';
+            });
+            output += '</ul>';
+            document.getElementById('results-container').innerHTML = output;
+          });
+      }
+      
+      document.getElementById('search-btn').addEventListener('click', search);
+      document.getElementById('search-box').addEventListener('keyup', function(event) {
+        if (event.keyCode === 13) {
+          search();
+        }
+      });
+    </script>
+  </body>
+</html>
